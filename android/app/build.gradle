@@ -1,0 +1,75 @@
+apply plugin: "com.android.application"
+apply plugin: "kotlin-android"
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    namespace "com.testempo"
+
+    defaultConfig {
+        applicationId "com.testempo"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+
+    packagingOptions {
+        exclude "META-INF/proguard/androidx-*.pro"
+        exclude "META-INF/proguard/retrofit2.pro"
+        exclude "META-INF/proguard/okhttp3.pro"
+    }
+
+    sourceSets {
+        main {
+            java {
+                srcDirs += 'src/main/java'
+            }
+        }
+    }
+}
+
+dependencies {
+    // React Native
+    implementation "com.facebook.react:react-android:0.76.5"
+    implementation "com.facebook.react:react-native:0.76.5"
+    implementation "com.facebook.react:hermes-android:0.76.5"
+    
+    // Kotatsu Parsers
+    implementation("com.github.KotatsuApp:kotatsu-parsers:1.0") {
+        exclude group: 'org.json', module: 'json'
+    }
+    
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+    
+    // OkHttp
+    implementation "com.squareup.okhttp3:okhttp:4.11.0"
+    
+    // AndroidX
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.core:core:1.12.0"
+    
+    // Core library desugaring
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+}
