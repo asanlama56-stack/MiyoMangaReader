@@ -1,4 +1,4 @@
-# Manga Reader App
+# Miyo Manga Reader
 
 A production-ready manga reader app for Android built with React Native (Expo). Features 12+ customizable themes, a robust reader with multiple modes, and a modular architecture designed for long-term extensibility.
 
@@ -71,6 +71,18 @@ lib/
 ├── themes.ts            # Theme definitions
 ├── store.ts             # Zustand stores
 └── ThemeContext.tsx     # Theme provider
+
+android/
+├── app/
+│   ├── src/main/java/com/miyomangareader/
+│   │   ├── MainActivity.kt
+│   │   ├── MainApplication.kt
+│   │   ├── KotatsuParserModule.kt     # Native module for Kotatsu parsers
+│   │   └── KotatsuParserPackage.kt    # React Native package registration
+│   └── build.gradle
+├── build.gradle
+├── settings.gradle
+└── gradle.properties
 ```
 
 ## Technology Stack
@@ -92,8 +104,22 @@ lib/
 
 ## Getting Started
 
+### Prerequisites
+- **Node.js**: 18+ (LTS recommended)
+- **npm** or **yarn**: Package manager
+- **Expo CLI**: `npm install -g expo-cli` (optional but recommended)
+- **EAS CLI**: `npm install -g eas-cli` (for cloud builds)
+- **Android Studio**: SDK 33+ with Android Emulator
+- **JDK**: Version 17+ (for local Android builds)
+- **Git**: For version control
+
 ### Installation
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd miyo-manga-reader
+
+# Install dependencies
 npm install
 ```
 
@@ -104,9 +130,227 @@ npm run android  # Run on Android
 npm run ios      # Run on iOS (Mac only)
 ```
 
-### Build
+## Build Instructions
+
+### Prerequisites for Building
+
+**Android:**
+- Android Studio installed with SDK 33+
+- JDK 17+ (recommended: Amazon Corretto or OpenJDK)
+- Gradle 8.6+ (bundled with project)
+- Android device or emulator (API 24+)
+
+**iOS (Mac only):**
+- Xcode 15+ installed
+- iOS device or simulator
+- Apple Developer account (for physical device deployment)
+
+### Building with EAS (Recommended)
+
+EAS Build is Expo's cloud build service that handles the complexity of native builds.
+
+**1. Login to Expo:**
 ```bash
-npx expo build:android  # Build Android APK
+npx eas-cli login
+```
+
+**2. Configure the project:**
+```bash
+npx eas-cli build:configure
+```
+
+**3. Build Android APK (internal testing):**
+```bash
+npx eas-cli build --platform android --profile preview
+```
+
+**4. Build Android AAB (Play Store):**
+```bash
+npx eas-cli build --platform android --profile production
+```
+
+**5. Build iOS (App Store/TestFlight):**
+```bash
+npx eas-cli build --platform ios --profile production
+```
+
+### Local Android Builds
+
+If you prefer to build locally without cloud services:
+
+**1. Prebuild native code:**
+```bash
+npx expo prebuild --platform android
+```
+
+**2. Navigate to android directory:**
+```bash
+cd android
+```
+
+**3. Build Debug APK:**
+```bash
+./gradlew assembleDebug
+# Output: android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+**4. Build Release APK:**
+```bash
+./gradlew assembleRelease
+# Output: android/app/build/outputs/apk/release/app-release.apk
+```
+
+**5. Build Release AAB (for Play Store):**
+```bash
+./gradlew bundleRelease
+# Output: android/app/build/outputs/bundle/release/app-release.aab
+```
+
+### Development Builds with Dev Client
+
+For faster iteration with native modules:
+
+```bash
+# Install dev client
+npx expo install expo-dev-client
+
+# Build development client
+npx eas-cli build --platform android --profile development
+
+# Or build locally
+npx expo run:android
+```
+
+### EAS Build Profiles
+
+The `eas.json` includes these profiles:
+
+| Profile | Distribution | Build Type | Use Case |
+|---------|-------------|------------|----------|
+| `development` | internal | APK | Local dev with native debugging |
+| `preview` | internal | APK | Testing/QA builds |
+| `production` | store | AAB | Play Store submission |
+
+### Signing Configuration
+
+**Debug Builds:**
+- Uses auto-generated debug keystore (no config needed)
+
+**Release Builds (EAS):**
+- EAS manages signing automatically
+- Credentials stored securely in Expo's infrastructure
+
+**Release Builds (Local):**
+```bash
+# Generate your own keystore
+keytool -genkeypair -v \
+  -keystore my-release-key.keystore \
+  -alias my-key-alias \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
+
+# Move keystore to android/app/
+mv my-release-key.keystore android/app/
+
+# Update android/app/build.gradle signing config
+```
+
+### Installing Built APK
+
+**Via ADB:**
+```bash
+adb install app-release.apk
+```
+
+**Via Device:**
+- Transfer APK to device
+- Enable "Install from unknown sources" in settings
+- Tap APK to install
+
+### Build Troubleshooting
+
+**1. "gradlew not found" error:**
+```bash
+# The gradlew files are included in the project
+# Make sure they're executable:
+chmod +x android/gradlew
+```
+
+**2. Gradle build fails:**
+```bash
+cd android
+./gradlew clean
+./gradlew build --stacktrace
+```
+
+**3. JDK version mismatch:**
+```bash
+# Check your Java version
+java -version
+
+# Should be 17+. If not, install JDK 17:
+# macOS: brew install openjdk@17
+# Linux: sudo apt install openjdk-17-jdk
+# Windows: Download from adoptium.net
+```
+
+**4. Out of memory during build:**
+```bash
+# Edit android/gradle.properties
+org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m
+```
+
+**5. Metro bundler errors:**
+```bash
+# Clear all caches
+npx expo start --clear
+rm -rf node_modules
+npm install
+```
+
+**6. Native module not found:**
+```bash
+# Rebuild native code
+npx expo prebuild --clean --platform android
+```
+
+**7. SDK/Build tools not found:**
+```bash
+# Open Android Studio → SDK Manager
+# Install required SDK versions (33+)
+# Install Build Tools (35.0.0)
+```
+
+## Kotatsu Parser Integration
+
+The app includes a Kotlin native module that integrates with Kotatsu Parsers library for real manga source support.
+
+### Native Module Location
+`android/app/src/main/java/com/miyomangareader/`
+
+### Exposed Methods (JavaScript Bridge)
+- `getSources()` - Returns list of available manga sources
+- `searchManga(sourceId, query, offset)` - Search within a source
+- `getMangaDetails(sourceId, mangaId)` - Get manga information
+- `getChapterList(sourceId, mangaId)` - Get chapter listing
+- `getPageList(sourceId, chapterId)` - Get page image URLs
+- `globalSearch(query)` - Search across all sources
+
+### Usage from React Native
+```tsx
+import { NativeModules } from 'react-native';
+const { KotatsuParserModule } = NativeModules;
+
+// Get sources
+const sources = await KotatsuParserModule.getSources();
+
+// Search manga
+const results = await KotatsuParserModule.searchManga(
+  'mangadex',
+  'one piece',
+  0
+);
 ```
 
 ## Theme System Usage
@@ -157,40 +401,6 @@ import { useDownloadsStore } from '@/lib/store';
 
 const { downloads, addDownload, updateDownload } = useDownloadsStore();
 ```
-
-## Next Steps (Kotatsu Parser Integration)
-
-This implementation provides the complete UI foundation. To integrate Kotatsu parsers:
-
-1. **Create Kotlin Native Module** (`android/app/src/main/java/com/mangareader/KotatsuParserModule.kt`)
-   - Implement `MangaLoaderContext`
-   - Expose methods: `getSources()`, `searchManga()`, `getMangaDetails()`, `getChapterList()`, `getPageList()`
-
-2. **Configure Android Build** (`android/build.gradle`)
-   - Add JitPack repository
-   - Add Kotatsu parsers dependency
-   - Enable desugaring
-
-3. **Replace Mock Data**
-   - Update screens to call native module methods
-   - Implement error handling
-   - Add loading states
-
-4. **File System Management**
-   - Implement download manager using `expo-file-system`
-   - Setup cache directory structure
-   - Implement LRU cache eviction
-
-## Current Implementation Status
-
-✅ **Fully Functional UI** - All screens, navigation, and interactions
-✅ **Theme System** - 12 themes with persistence
-✅ **State Management** - Zustand stores for app, library, downloads
-✅ **Reader Interface** - Auto-hiding controls, page navigation
-✅ **Type Safety** - Full TypeScript coverage, no compilation errors
-⏳ **Native Module** - Requires Kotlin implementation for Kotatsu parsers
-⏳ **Real Data** - Currently using mock data (easy to replace)
-⏳ **Downloads** - UI complete, needs file system integration
 
 ## Design Specifications
 

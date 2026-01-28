@@ -1,4 +1,4 @@
-package com.testempo
+package com.miyomangareader
 
 import android.content.Context
 import com.facebook.react.bridge.*

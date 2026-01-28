@@ -5,13 +5,14 @@ buildscript {
         compileSdkVersion = 35
         targetSdkVersion = 35
         kotlinVersion = "1.9.23"
+        ndkVersion = "26.1.10909125"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.2.0")
+        classpath("com.android.tools.build:gradle:8.2.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${ext.kotlinVersion}")
     }
 }
@@ -23,6 +24,8 @@ allprojects {
         maven { url "https://jitpack.io" }
     }
 }
+
+apply plugin: "com.facebook.react.rootproject"
 
 tasks.register('clean', Delete) {
     delete rootProject.buildDir
