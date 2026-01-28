@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAppStore } from '@/lib/store';
 import { router } from 'expo-router';
@@ -6,15 +6,17 @@ import ThemeSelectionScreen from '@/components/ThemeSelectionScreen';
 
 export default function Index() {
   const { isFirstLaunch, theme } = useAppStore();
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (!isFirstLaunch) {
-      // Small delay to ensure theme is loaded
+    if (!isFirstLaunch && !isReady) {
+      setIsReady(true);
+      // Navigate to tabs after state is ready
       setTimeout(() => {
-        router.replace('/(tabs)');
-      }, 100);
+        router.replace('/(tabs)/feed');
+      }, 50);
     }
-  }, [isFirstLaunch]);
+  }, [isFirstLaunch, isReady]);
 
   if (isFirstLaunch) {
     return <ThemeSelectionScreen />;
